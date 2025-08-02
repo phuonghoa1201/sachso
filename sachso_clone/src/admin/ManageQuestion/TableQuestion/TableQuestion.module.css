@@ -1,0 +1,5 @@
+.customHeader :global(.ant-table-thead > tr > th) {
+  background-color: #1890ff;  /* xanh Ant Design */
+  color: white;
+  font-weight: 600;
+}
