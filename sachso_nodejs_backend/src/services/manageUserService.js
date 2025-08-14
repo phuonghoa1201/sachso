@@ -172,9 +172,6 @@ const viewUserService = async (userId) => {
 
 }
 
-
-
-
 module.exports = {
     getUserService,
     addUserService,

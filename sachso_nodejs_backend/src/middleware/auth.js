@@ -13,7 +13,6 @@ const auth = (req, res, next) => {
     if (white_lists.includes(req.url)) {
         next();
 
-
     } else {
         if (req.headers && req.headers.authorization) {
             // lôi bearer token từ front end dề
