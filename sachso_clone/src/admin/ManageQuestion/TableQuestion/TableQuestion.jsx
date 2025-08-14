@@ -1,12 +1,13 @@
 import { EyeOutlined, EditOutlined, DeleteOutlined, PhoneOutlined, KeyOutlined } from "@ant-design/icons";
 import { Select, Form, Button, Input, Table, Tag, Space, Breadcrumb } from "antd";
 import styles from './TableQuestion.Module.css'
-function TableQuestion({ questions, onUpdate, onView, onDelete,}) {
+function TableQuestion({ questions, onUpdate, onView, onDelete, }) {
+    console.log("Question in TableQuestion:", questions);
     const columns = [
         {
             title: '#',
             dataIndex: 'stt',
-            key: 'stt',
+            render: (text, record, index) => index + 1,
         },
         {
             title: 'Khối lớp',
@@ -23,37 +24,74 @@ function TableQuestion({ questions, onUpdate, onView, onDelete,}) {
             title: 'Kỹ năng',
             dataIndex: 'skills',
             key: 'skills',
-            render: (_, { skills = [] }) => (
-                <>
-                    {skills.map(skill => {
-                        let color;
-                        if (skill === 'L') {
-                            color = 'gray';
-                        } else if (skill === 'R') {
-                            color = 'red';
-                        } else if (skill === 'S') {
-                            color = 'gold';
-                        } else {
-                            color = 'green';
-                        }
-                        return (
-                            <Tag color={color} key={skill}>
-                                {skill}
-                            </Tag>
-                        );
-                    })}
-                </>
-            ),
-            // filters to generate filter menu in columns
+            render: (_, { skills = [] }) => {
+                // Ánh xạ từ tên đầy đủ hoặc chữ thường sang ký tự viết hoa
+                const skillMap = {
+                    r: 'R',
+                    reading: 'R',
+                    s: 'S',
+                    speaking: 'S',
+                    l: 'L',
+                    listening: 'L',
+                    w: 'W',
+                    writing: 'W',
+                };
+
+                return (
+                    <>
+                        {skills.map((skillRaw, index) => {
+                            // Chuẩn hóa: chuyển về thường rồi tra map
+                            const normalized = skillRaw?.toLowerCase?.();
+                            const skill = skillMap[normalized] || skillRaw?.toUpperCase?.() || 'UNKNOWN';
+
+                            let color;
+                            if (skill === 'L') {
+                                color = 'gray';
+                            } else if (skill === 'R') {
+                                color = 'red';
+                            } else if (skill === 'S') {
+                                color = 'gold';
+                            } else if (skill === 'W') {
+                                color = 'green';
+                            } else {
+                                color = 'blue'; // fallback cho giá trị lạ
+                            }
+
+                            return (
+                                <Tag color={color} key={index}>
+                                    {skill}
+                                </Tag>
+                            );
+                        })}
+                    </>
+                );
+            },
             filters: [
                 { text: 'L', value: 'L' },
                 { text: 'R', value: 'R' },
                 { text: 'S', value: 'S' },
                 { text: 'W', value: 'W' },
             ],
-            onFilter: (value, record) => record.skills.includes(value),
-
+            onFilter: (value, record) => {
+                // Chuẩn hóa skill trong record rồi kiểm tra có khớp không
+                const skillMap = {
+                    r: 'R',
+                    reading: 'R',
+                    s: 'S',
+                    speaking: 'S',
+                    l: 'L',
+                    listening: 'L',
+                    w: 'W',
+                    writing: 'W',
+                };
+                return record.skills.some(skillRaw => {
+                    const normalized = skillRaw?.toLowerCase?.();
+                    const skill = skillMap[normalized] || skillRaw?.toUpperCase?.();
+                    return skill === value;
+                });
+            },
         },
+
         {
             title: 'Câu hỏi',
             dataIndex: 'questionText',
@@ -96,7 +134,7 @@ function TableQuestion({ questions, onUpdate, onView, onDelete,}) {
                         onView(record);
 
                     }}
-                  
+
                     />
                     <Button shape="circle" icon={<DeleteOutlined />} danger type="dashed" onClick={() => {
                         console.log("DELETE", record)
@@ -113,9 +151,12 @@ function TableQuestion({ questions, onUpdate, onView, onDelete,}) {
     return (
         <div>
             {/* Table */}
-            <Table columns={columns} 
-             dataSource={questions}
-             bordered className={`${styles.customHeader} px-4`} scroll={{ x: 'max-content' }} />
+            <Table columns={columns}
+                dataSource={questions.map(q => ({ ...q, key: q._id }))}
+                bordered
+                className={`${styles.customHeader} px-4`}
+                scroll={{ x: 'max-content' }}
+                pagination={{ pageSize: 20 }} />
         </div>
     );
 

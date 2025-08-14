@@ -92,7 +92,7 @@ function TableUser({ users, onDelete, onEdit, onView }) {
 
         {
             title: 'Cấp',
-            dataIndex: 'level', // 👉 đổi lại từ 'levels' nếu tên trong object là 'level'
+            dataIndex: 'level', 
             key: 'level',
             render: (_, { level }) => {
                 let color = 'green';

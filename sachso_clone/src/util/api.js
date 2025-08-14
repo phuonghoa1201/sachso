@@ -48,6 +48,24 @@ const viewUserApi = (id) => {
     return axios.get(URL_API)
 
 }
+
+// mangae question
+const getQuestionApi = () => {
+    const URL_API = "/v1/api/question"
+    return axios.get(URL_API)
+}
+const addQuestionApi = (gradeId, unitId, skillId, questionTypeId, cognitionLevelId, requirement, audioUrl, imageUrl, readingText, content, answerType, answers) => {
+    const URL_API = "v1/api/add-question"
+    const dataAddQuestion = {
+        gradeId, unitId, skillId, questionTypeId, cognitionLevelId, requirement, audioUrl, imageUrl, readingText, content, answerType, answers
+    }
+    return axios.post(URL_API, dataAddQuestion)
+
+}
+const editQuestionApi = (id, dataEditQuestion) => {
+    const URL_API = `v1/api/edit-question/${id}`;
+    return axios.put(URL_API, dataEditQuestion);
+}
 // vì file này xuất ra nhiều file api
 export {
     createUserApi,
@@ -56,6 +74,9 @@ export {
     addUserApi,
     editUserApi,
     deleteUserApi,
-    viewUserApi
+    viewUserApi,
+    getQuestionApi,
+    addQuestionApi,
+    editQuestionApi
 
 } 

@@ -1,168 +1,202 @@
 import { PlusOutlined, InsertRowAboveOutlined } from "@ant-design/icons";
 import FilterQuestion from "./CrudQuestion/FilterQuestion";
 import TableQuestion from "./TableQuestion/TableQuestion";
-import { useState } from "react";
-import AddQuestion from "./CrudQuestion/AddQuestion";
+import AddQuestion from "./CrudQuestion/AddUpdateQuestion/AddUpdateQuestion";
 import ViewQuestion from "./CrudQuestion/ViewQuestions";
 import { Modal } from "antd";
+import { useState, useEffect } from "react";
+import { getQuestionApi } from "../../util/api";
+
 function ManageQuestion() {
-    const [questions, setQuestions] = useState([
-        {
+  const [questions, setQuestions] = useState([]);
+  const [filterQuestions, setFilterQuestions] = useState([]);
 
-            key: '1',
-            stt: 1,
-            class: 'Lớp 2',
-            unit: 'Unit 1',
-            skills: ['R'],
-            questionText: 'Listen and choose the correct answer.',
-            types: 'Fill Color',
-            levels: 'Vận dụng',
-            answersType: 'text',
-            answers: [
-                { value: "Answer A", isCorrect: false },
-                { value: "Answer B", isCorrect: true },
-                { value: "Answer C", isCorrect: false },
-            ],
+  // Add / Update modal
+  const [openAddQuestionModal, setOpenAddQuestionModal] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState(null);
+
+  // View modal
+  const [openViewModal, setOpenViewModal] = useState(false);
+  const [viewQuestions, setViewQuestions] = useState(null);
+
+  // Delete modal
+  const [confirmDeleteVisible, setConfirmDeleteVisible] = useState(false);
+  const [questionToDelete, setQuestionToDelete] = useState(null);
+
+  useEffect(() => {
+    const fetchQuestion = async () => {
+      try {
+        const res = await getQuestionApi();
+        if (res.EC === 0 && Array.isArray(res.DT)) {
+          const mapped = res.DT.map((item, idx) => ({
+            ...item,
+            key: item._id,
+            stt: idx + 1,
+            class: item.gradeId?.name || '',
+            unit: item.unitId?.name || '',
+            skills: item.skillId ? [item.skillId.name] : [],
+            questionText: item.content,
+            types: item.questionTypeId?.name || '',
+            levels: item.cognitionLevelId?.name || '',
+            answersType: item.answerType || 'text',
+          }));
+          setQuestions(mapped);
+        } else {
+          setQuestions([]);
         }
-    ]);
-
-    // Open/ close add questions modal
-    const [openAddQuestionModal, setOpenAddQuestionModal] = useState(false);
-
-    // Update câu hổi
-    const [editingQuestion, setEditingQuestion] = useState(null)
-    // Dùng chung form với add
-
-    // Open add question Modal
-    const handleOpenAddQuestionModal = () => {
-        // khi bấm nút thêm mới thì để edit null để báo đây là thêm
-        setEditingQuestion(null);
-        setOpenAddQuestionModal(true);
-
-    }
-    // Close add question Modal
-    const handleCloseAddQuestionModal = () => {
-        setOpenAddQuestionModal(false);
-        // clear editingQuestion về null đi
-        setEditingQuestion(null);
+      } catch (err) {
+        console.error("Lỗi load câu hỏi:", err);
+        setQuestions([]);
+      }
     };
+    fetchQuestion();
+  }, []);
 
-    // Bấm nút sửa lên từng dòng từng question của bảng thì để cho 
-    const handleOpenUpdateQuestionModal = (question) => {
-        setEditingQuestion(question)
-        setOpenAddQuestionModal(true);
+  useEffect(() => {
+    setFilterQuestions(questions);
+  }, [questions]);
 
-    }
-
-    const addQuestion = (newQuestion) => {
-        setQuestions(prevQuestions => [
-            ...prevQuestions,
-            {
-                ...newQuestion,
-                key: (prevQuestions.length + 1).toString(),
-                stt: prevQuestions.length + 1,
-                skills: Array.isArray(newQuestion.skills) ? newQuestion.skills : [newQuestion.skills],
-                unit: newQuestion.unit || newQuestion.units || '',
-                answersType: newQuestion.answersType || "text",
-
-            }
-        ]);
-        handleCloseAddQuestionModal();
-    }
-
-    // update: “Tìm đúng câu hỏi đang sửa, thay thế bằng dữ liệu mới, nhưng giữ nguyên key và stt. Sau đó reset trạng thái editing để modal biết là đã sửa xong.”
-    const updateQuestion = (updatedQuestion) => {
-        setQuestions(prevQuestions =>
-            prevQuestions.map(q =>
-                q.key === editingQuestion.key
-                    ? { ...updatedQuestion, key: q.key, stt: q.stt, answersType: updatedQuestion.answersType || "text", } : q
-            )
-        )
-        setEditingQuestion(null)
-        setOpenAddQuestionModal(false);
-    }
-
-    // Lọc
-    const [filterQuestions, setFilterQuestions] = useState(questions);
-
-    const handleFilter = (filterValues) => {
-        const filtered = questions.filter((q) => {
-            return (
-                (!filterValues.class || q.class === filterValues.class) &&
-                (!filterValues.unit || filterValues.unit.includes(q.unit)) &&
-                (!filterValues.skill ||
-                    q.skills.some(s => s.toLowerCase().includes(filterValues.skill.toLowerCase()))
-                ) &&
-                (!filterValues.type || q.types === filterValues.type) &&
-                (!filterValues.request || q.request === filterValues.request) &&
-                (!filterValues.level ||  q.levels === filterValues.level) &&
-                (!filterValues.question || q.question.toLowerCase().includes(filterValues.question.toLowerCase()))
-
-            );
-        })
-        setFilterQuestions(filtered)
-    }
-
-    // view question
-    // set state open Modal
-    const [openViewModal, setOpenViewModal] = useState(false);
-    const [viewQuestions, setViewQuestions] = useState(null);
-
-    const handleViewQuestions = (question) => {
-        console.log("VIEW CLICKED:", question);
-        setViewQuestions(question);
-        setOpenViewModal(true);
-
-    }
-    //  delete Questions
-    const [confirmDeleteVisible, setConfirmDeleteVisible] = useState(false);
-    const [questionToDelete, setQuestionToDelete] = useState(null);
-
-    const handleOpenDeleteModal = (question) => {
-        setQuestionToDelete(question);
-        setConfirmDeleteVisible(true);
-    };
+  const handleOpenAddQuestionModal = () => {
+    setEditingQuestion(null);
+    setOpenAddQuestionModal(true);
+  };
+  const handleCloseAddQuestionModal = () => {
+    setOpenAddQuestionModal(false);
+    setEditingQuestion(null);
+  };
 
 
-    return (
-        <div>
-            <div className="  mx-auto mt-4 bg-white">
-                {/* Title */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 py-6 border-b border-gray-300 px-4">
-                    <div className="uppercase text-xl font-medium">
-                        Quản lý câu hỏi
-                    </div>
-                    <div className="flex space-x-2 text-sm">
-                        <button className="py-2 bg-blue-500 text-white border rounded border-blue-500 px-2" onClick={handleOpenAddQuestionModal}>
-                            <PlusOutlined className="text-white" /> Thêm câu hỏi
-                        </button>
-                        <button className="border bg-blue-500 text-white rounded border-blue-500 px-2">
-                            <InsertRowAboveOutlined /> Nhập từ excel
-                        </button>
-                    </div>
-                </div>
-                {/* Filter */}
-                <FilterQuestion onFilter={handleFilter} />
-                <TableQuestion questions={filterQuestions} onUpdate={handleOpenUpdateQuestionModal} onView={handleViewQuestions} onDelete={handleOpenDeleteModal} />
-            </div>
-            <AddQuestion openAddQuestion={openAddQuestionModal} closeAddQuestion={handleCloseAddQuestionModal} addQuestion={addQuestion} updateQuestion={updateQuestion} editingQuestion={editingQuestion} />
-            <ViewQuestion openViewQuestion={!!viewQuestions} closeViewQuestion={() => setViewQuestions(null)} questionData={viewQuestions} />
-            <Modal
-                title="Xác nhận xoá"
-                open={confirmDeleteVisible}
-                onOk={() => {
-                    setQuestions(prev => prev.filter(q => q.id !== questionToDelete.id));
-                    setConfirmDeleteVisible(false);
-                }}
-                onCancel={() => setConfirmDeleteVisible(false)}
-                okText="Xoá"
-                cancelText="Hủy"
-                okType="danger"
-            >
-                <p>Bạn có chắc chắn muốn xoá question "<strong>{questionToDelete?.questionText}</strong>" không?</p>
-            </Modal>
-        </div>
+  const formatQuestionForTable = (q) => ({
+    ...q,
+    key: q._id,
+    stt: questions.length + 1,
+    skills: q.skillId ? [q.skillId.name] : [],
+    unit: q.unitId?.name || '',
+    questionText: q.content,
+    types: q.questionTypeId?.name || '',
+    levels: q.cognitionLevelId?.name || '',
+    answersType: q.answerType || 'text',
+  });
+
+  const addQuestion = (newQuestion) => {
+    const formatted = formatQuestionForTable(newQuestion);
+    setQuestions(prev => [...prev, formatted]);
+    handleCloseAddQuestionModal();
+  };
+
+
+  const updateQuestion = (updatedQuestion) => {
+    setQuestions(prevQuestions =>
+      prevQuestions.map(q =>
+        q.key === editingQuestion.key
+          ? { ...formatQuestionForTable(updatedQuestion), key: q.key, stt: q.stt }
+          : q
+      )
     );
+    setEditingQuestion(null);
+    setOpenAddQuestionModal(false);
+  };
 
+
+  const handleOpenUpdateQuestionModal = (question) => {
+    setEditingQuestion(question);
+    setOpenAddQuestionModal(true);
+  };
+
+
+  const handleViewQuestions = (question) => {
+    setViewQuestions(question);
+    setOpenViewModal(true);
+  };
+
+ 
+  const handleOpenDeleteModal = (question) => {
+    setQuestionToDelete(question);
+    setConfirmDeleteVisible(true);
+  };
+  const handleDeleteQuestion = () => {
+    setQuestions(prev => prev.filter(q => q.key !== questionToDelete.key));
+    setConfirmDeleteVisible(false);
+    setQuestionToDelete(null);
+  };
+
+
+  const handleFilter = (filterValues) => {
+    const filtered = questions.filter((q) => {
+      return (
+        (!filterValues.class || q.class === filterValues.class) &&
+        (!filterValues.unit || q.unit.includes(filterValues.unit)) &&
+        (!filterValues.skill || q.skills.some(s => s.toLowerCase().includes(filterValues.skill.toLowerCase()))) &&
+        (!filterValues.type || q.types === filterValues.type) &&
+        (!filterValues.request || q.request === filterValues.request) &&
+        (!filterValues.level || q.levels === filterValues.level) &&
+        (!filterValues.question || q.questionText.toLowerCase().includes(filterValues.question.toLowerCase()))
+      );
+    });
+    setFilterQuestions(filtered);
+  };
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="mx-auto mt-4 bg-white">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 py-6 border-b border-gray-300 px-4">
+          <div className="uppercase text-xl font-medium">Quản lý câu hỏi</div>
+          <div className="flex space-x-2 text-sm">
+            <button
+              className="py-2 bg-blue-500 text-white border rounded border-blue-500 px-2"
+              onClick={handleOpenAddQuestionModal}
+            >
+              <PlusOutlined className="text-white" /> Thêm câu hỏi
+            </button>
+            <button className="border bg-blue-500 text-white rounded border-blue-500 px-2">
+              <InsertRowAboveOutlined /> Nhập từ excel
+            </button>
+          </div>
+        </div>
+
+        {/* Filter */}
+        <FilterQuestion onFilter={handleFilter} />
+
+        {/* Table */}
+        <TableQuestion
+          questions={filterQuestions}
+          onUpdate={handleOpenUpdateQuestionModal}
+          onView={handleViewQuestions}
+          onDelete={handleOpenDeleteModal}
+        />
+      </div>
+
+      {/* Add / Update Question Modal */}
+      <AddQuestion
+        openAddQuestion={openAddQuestionModal}
+        closeAddQuestion={handleCloseAddQuestionModal}
+        addQuestion={addQuestion}
+        updateQuestion={updateQuestion}
+        editingQuestion={editingQuestion}
+      />
+
+      {/* View Question Modal */}
+      <ViewQuestion
+        openViewQuestion={!!viewQuestions}
+        closeViewQuestion={() => setViewQuestions(null)}
+        questionData={viewQuestions}
+      />
+
+      {/* Delete Confirm Modal */}
+      <Modal
+        title="Xác nhận xoá"
+        open={confirmDeleteVisible}
+        onOk={handleDeleteQuestion}
+        onCancel={() => setConfirmDeleteVisible(false)}
+        okText="Xoá"
+        cancelText="Hủy"
+        okType="danger"
+      >
+        <p>Bạn có chắc chắn muốn xoá question "<strong>{questionToDelete?.questionText}</strong>" không?</p>
+      </Modal>
+    </div>
+  );
 }
+
 export default ManageQuestion;
