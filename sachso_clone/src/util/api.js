@@ -66,6 +66,32 @@ const editQuestionApi = (id, dataEditQuestion) => {
     const URL_API = `v1/api/edit-question/${id}`;
     return axios.put(URL_API, dataEditQuestion);
 }
+// Bởi vì back end dùng multer nên nó expect nhận file qua multipart/ data
+// multipart /form data: là chuẩn http để gửi file và dữ liêu text cùng lúc
+const uploadFileApi = (imageFile, audioFile) => {
+    const URL_API = "v1/api/upload"
+    const formData = new FormData();
+
+    if (imageFile) formData.append("image", imageFile);
+    if (audioFile) formData.append("audio", audioFile)
+
+    return axios.post(URL_API, formData, {
+        headers: {
+            "Content-Type" : "multipart/form-data"
+        }
+    } )
+}
+
+const viewQuestionApi = (id) => {
+    const URL_API = `v1/api/view-question/${id}`;
+    return axios.get(URL_API)
+
+}
+
+const deleteQuestionApi = (id) => {
+    const URL_API = `v1/api/delete-question/${id}`;
+    return axios.delete(URL_API)
+}
 // vì file này xuất ra nhiều file api
 export {
     createUserApi,
@@ -77,6 +103,9 @@ export {
     viewUserApi,
     getQuestionApi,
     addQuestionApi,
-    editQuestionApi
+    editQuestionApi,
+    uploadFileApi,
+    viewQuestionApi,
+    deleteQuestionApi
 
 } 

@@ -5,7 +5,7 @@ import AddQuestion from "./CrudQuestion/AddUpdateQuestion/AddUpdateQuestion";
 import ViewQuestion from "./CrudQuestion/ViewQuestions";
 import { Modal } from "antd";
 import { useState, useEffect } from "react";
-import { getQuestionApi } from "../../util/api";
+import { deleteQuestionApi, getQuestionApi, viewQuestionApi } from "../../util/api";
 
 function ManageQuestion() {
   const [questions, setQuestions] = useState([]);
@@ -22,7 +22,7 @@ function ManageQuestion() {
   // Delete modal
   const [confirmDeleteVisible, setConfirmDeleteVisible] = useState(false);
   const [questionToDelete, setQuestionToDelete] = useState(null);
-
+  //  thêm câu hỏi mới thì component rerender 
   useEffect(() => {
     const fetchQuestion = async () => {
       try {
@@ -32,7 +32,7 @@ function ManageQuestion() {
             ...item,
             key: item._id,
             stt: idx + 1,
-            class: item.gradeId?.name || '',
+            class: item.gradeId?.name || item.unitId?.gradeId?.name || '',
             unit: item.unitId?.name || '',
             skills: item.skillId ? [item.skillId.name] : [],
             questionText: item.content,
@@ -104,12 +104,31 @@ function ManageQuestion() {
   };
 
 
-  const handleViewQuestions = (question) => {
-    setViewQuestions(question);
+  // const handleViewQuestions = (question) => {
+  //   setViewQuestions(question);
+  //   setOpenViewModal(true);
+  // };
+  const handleViewQuestions = async (question) => {
+    try {
+      const res = await viewQuestionApi(question._id);
+      if (res.EC == 0) {
+        setViewQuestions(res.DT)
+        // console.log("Data view question res: ", res.DT);
+
+      } else {
+        alert("Không lấy được data câu hỏi")
+      }
+
+    } catch (error) {
+      console.error("Lỗi khi gọi API xem chi tiết:", error);
+      alert("Đã xảy ra lỗi khi xem chi tiết câu hỏi");
+
+    }
     setOpenViewModal(true);
+
   };
 
- 
+
   const handleOpenDeleteModal = (question) => {
     setQuestionToDelete(question);
     setConfirmDeleteVisible(true);
@@ -135,6 +154,8 @@ function ManageQuestion() {
     });
     setFilterQuestions(filtered);
   };
+
+
 
   return (
     <div>
@@ -187,7 +208,26 @@ function ManageQuestion() {
       <Modal
         title="Xác nhận xoá"
         open={confirmDeleteVisible}
-        onOk={handleDeleteQuestion}
+        onOk={async () => {
+
+          try {
+            const res = await deleteQuestionApi(questionToDelete._id)
+            if (res.EC !== 0) {
+              console.error("Lỗi từ backend:", res.error);
+              alert("Xóa câu hỏi không thành công", res.error);
+              return;
+            }
+            // Xóa khỏi UI
+            setQuestions(prev => prev.filter(u => u._id !== questionToDelete._id)); // xóa theo _id backend
+          } catch (error) {
+            console.error("Lỗi khi gọi API:", error.message || error);
+            alert("Đã xảy ra lỗi khi chỉnh sửa người dùng");
+            return;
+
+          }
+
+          setConfirmDeleteVisible(false);
+        }}
         onCancel={() => setConfirmDeleteVisible(false)}
         okText="Xoá"
         cancelText="Hủy"

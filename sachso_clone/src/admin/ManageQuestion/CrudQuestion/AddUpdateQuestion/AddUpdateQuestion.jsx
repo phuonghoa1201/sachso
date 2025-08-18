@@ -5,7 +5,7 @@ import UnitGradeSelector from "./UnitGradeSelector";
 import SkillSelector from "./SkillSelector";
 import QuestionTypeSelector from "./QuestionTypeSelector";
 import CognitionSelector from "./CognitionSelector";
-import { addQuestionApi, editQuestionApi } from "../../../../util/api";
+import { addQuestionApi, editQuestionApi, uploadFileApi } from "../../../../util/api";
 
 function AddQuestion({ openAddQuestion, closeAddQuestion, addQuestion, updateQuestion, editingQuestion }) {
     const [form] = Form.useForm();
@@ -13,6 +13,10 @@ function AddQuestion({ openAddQuestion, closeAddQuestion, addQuestion, updateQue
     // state audio / image
     const [audioUrl, setAudioUrl] = useState("");
     const [imgUrl, setImgUrl] = useState("");
+
+    // Lưu file thực tế (gửi lên API uploadFileApi)
+    const [audioFile, setAudioFile] = useState(null);
+    const [imgFile, setImgFile] = useState(null);
 
     // state câu hỏi
     const [questionType, setQuestionType] = useState("Multiple Choice");
@@ -26,17 +30,35 @@ function AddQuestion({ openAddQuestion, closeAddQuestion, addQuestion, updateQue
     // state requirement từ dropdown (text)
     const [selectedRequirement, setSelectedRequirement] = useState("");
 
-
-
     useEffect(() => {
         if (editingQuestion) {
-            form.setFieldsValue(editingQuestion);
+            // Reset form trước
+            form.resetFields();
+
+            // Set answersType và answers trước
             setAnswersType(editingQuestion.answerType || "text");
-            setAnswers(editingQuestion.answers || []);
+            const mappedAnswers = (editingQuestion.answers || []).map(ans => ({
+                value: ans.text || ans.imageUrl || "",
+                isCorrect: ans.isCorrect ?? false,
+            }));
+            setAnswers(mappedAnswers);
+
+            // Set các state khác
             setQuestionType(editingQuestion.questionType || "Multiple Choice");
             setAudioUrl(editingQuestion.audioUrl || "");
             setImgUrl(editingQuestion.imageUrl || "");
             setSelectedRequirement(editingQuestion.requirement || "");
+
+            // Set form fields, chỉ dùng id cho Select
+            form.setFieldsValue({
+                gradeId: editingQuestion.gradeId?._id || null,
+                unitId: editingQuestion.unitId?._id || null,
+                skillId: editingQuestion.skillId?._id || null,
+                questionTypeId: editingQuestion.questionTypeId?._id || null,
+                cognitionLevelId: editingQuestion.cognitionLevelId?._id || null,
+                readingContent: editingQuestion.readingText || "",
+                content: editingQuestion.content || "",
+            });
         } else {
             form.resetFields();
             setAnswersType("text");
@@ -52,28 +74,57 @@ function AddQuestion({ openAddQuestion, closeAddQuestion, addQuestion, updateQue
         }
     }, [editingQuestion, form]);
 
+
+
     const onFinish = async (values) => {
-        const updatedData = {};
-
-        if (values.gradeId) updatedData.gradeId = values.gradeId;
-        if (values.unitId) updatedData.unitId = values.unitId;
-        if (values.skillId) updatedData.skillId = values.skillId;
-        if (values.questionTypeId) updatedData.questionTypeId = values.questionTypeId;
-        if (values.cognitionLevelId) updatedData.cognitionLevelId = values.cognitionLevelId;
-        if (selectedRequirement) updatedData.requirement = selectedRequirement;
-        if (audioUrl) updatedData.audioUrl = audioUrl;
-        if (imgUrl) updatedData.imageUrl = imgUrl;
-        if (values.readingContent) updatedData.readingText = values.readingContent;
-        if (values.content) updatedData.content = values.content;
-        if (answersType) updatedData.answerType = answersType;
-        if (answers && answers.length > 0) updatedData.answers = answers;
-
         try {
+            // Khởi tạo url cuối cùng
+            let uploadedAudioUrl = audioUrl;
+            let uploadedImgUrl = imgUrl;
+
+            // upload file nếu có file thật
+            // if (audioFile || imgFile) {
+            //     const uploadResponse = await uploadFileApi(imgFile || null, audioFile || null);
+            //     uploadedImgUrl = uploadResponse.imageUrl || uploadedImgUrl;
+            //     uploadedAudioUrl = uploadResponse.audioUrl || uploadedAudioUrl;
+            // }
+
+            if (audioFile) {
+                const audioRes = await uploadFileApi(null, audioFile);
+                uploadedAudioUrl = audioRes.audioUrl || uploadedAudioUrl;
+            }
+
+            if (imgFile) {
+                const imgRes = await uploadFileApi(imgFile, null);
+                uploadedImgUrl = imgRes.imageUrl || uploadedImgUrl;
+            }
+            const updatedData = {
+                gradeId: values.gradeId,
+                unitId: values.unitId,
+                skillId: values.skillId,
+                questionTypeId: values.questionTypeId,
+                cognitionLevelId: values.cognitionLevelId,
+                requirement: selectedRequirement,
+                audioUrl: uploadedAudioUrl,
+                imageUrl: uploadedImgUrl,
+                readingText: values.readingContent,
+                content: values.content,
+                answerType: answersType,
+                answers: answers.map(a =>
+                    answersType === "text"
+                        ? { text: a.value, isCorrect: a.isCorrect ?? false }
+                        : { imageUrl: a.value, isCorrect: a.isCorrect ?? false }
+                ),
+            }
+
             if (editingQuestion) {
                 const res = await editQuestionApi(editingQuestion._id, updatedData);
                 if (res.EC === 0) {
                     alert("Chỉnh sửa câu hỏi thành công!");
-                    updateQuestion({ ...editingQuestion, ...updatedData });
+                    updateQuestion(res.DT);
+                    console.log("Edit response", res.DT);
+
+                    form.resetFields();
                     closeAddQuestion();
                 } else {
                     alert("Sửa câu hỏi thất bại: " + (res.error || ""));
@@ -125,16 +176,26 @@ function AddQuestion({ openAddQuestion, closeAddQuestion, addQuestion, updateQue
 
     // handle file upload / paste link
     const handleAudioFileUpload = (file) => {
+        setAudioFile(file)    //Lưu file để upload
         setAudioUrl(URL.createObjectURL(file));
         return false;
     };
-    const handlePasteLinkAudio = (e) => setAudioUrl(e.target.value.trim());
+    const handlePasteLinkAudio = (e) => {
+        setAudioFile(null)
+        setAudioUrl(e.target.value.trim());
+
+    }
+
     const handleImgFileUpload = (file) => {
+        setImgFile(file)
         setImgUrl(URL.createObjectURL(file));
         return false;
     };
-    const handlePasteImgLink = (e) => setImgUrl(e.target.value.trim());
+    const handlePasteImgLink = (e) => {
+        setImgFile(null)
+        setImgUrl(e.target.value.trim());
 
+    }
     const onAnswerChange = (index, val) => {
         const newAnswers = [...answers];
         newAnswers[index].value = val;
@@ -159,9 +220,9 @@ function AddQuestion({ openAddQuestion, closeAddQuestion, addQuestion, updateQue
             <Form form={form} onFinish={onFinish} layout="vertical" className="space-y-4">
                 <div className="max-h-[80vh] overflow-y-auto grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="md:col-span-1 space-y-4">
-                        <UnitGradeSelector form={form} />
-                        <SkillSelector />
-                        <QuestionTypeSelector />
+                        <UnitGradeSelector form={form} editingQuestion={editingQuestion} />
+                        <SkillSelector form={form} editingQuestion={editingQuestion} />
+                        <QuestionTypeSelector form={form} editingQuestion={editingQuestion} />
 
                         <Form.Item
                             label={<span className="rounded-t-lg bg-blue-500 uppercase text-white py-2 px-2">Yêu cầu đề bài</span>}
@@ -178,15 +239,23 @@ function AddQuestion({ openAddQuestion, closeAddQuestion, addQuestion, updateQue
                             />
                         </Form.Item>
 
-                        <CognitionSelector />
+                        <CognitionSelector form={form} editingQuestion={editingQuestion} />
                     </div>
 
                     <div className="md:col-span-2 space-y-4">
                         <Form.Item label="Link audio" name="audioUrl">
                             <div className="flex flex-row">
-                                <Input placeholder="https://..." value={audioUrl} onChange={handlePasteLinkAudio} />
+                                {/* <Input placeholder="https://..." value={audioUrl} onChange={handlePasteLinkAudio} /> */}
+                                <Input
+                                    placeholder="https://..."
+                                    value={audioUrl}
+                                    onChange={handlePasteLinkAudio}
+                                    disabled={selectedRequirement === 'Look at the picture and write the missing word.'}
+
+                                />
                                 <Upload beforeUpload={handleAudioFileUpload} showUploadList={false} accept="audio/*">
-                                    <Button icon={<UploadOutlined />}>Audio Upload</Button>
+                                    {/* <Button icon={<UploadOutlined />}>Audio Upload</Button> */}
+                                    <Button disabled={audioUrl !== "" || selectedRequirement === 'Look at the picture and write the missing word.'} icon={<UploadOutlined />}>Audio Upload</Button>
                                 </Upload>
                             </div>
                         </Form.Item>
@@ -195,9 +264,17 @@ function AddQuestion({ openAddQuestion, closeAddQuestion, addQuestion, updateQue
 
                         <Form.Item label="Link hình ảnh" name="imageUrl">
                             <div className="flex flex-row">
-                                <Input placeholder="https://..." value={imgUrl} onChange={handlePasteImgLink} />
+                                {/* <Input placeholder="https://..." value={imgUrl} onChange={handlePasteImgLink} /> */}
+                                <Input
+                                    placeholder="https://..."
+                                    value={imgUrl}
+                                    onChange={handlePasteImgLink}
+                                    disabled={selectedRequirement === 'Listen, read and tick the correct anwser.'}
+
+                                />
                                 <Upload beforeUpload={handleImgFileUpload} showUploadList={false} accept="image/*">
-                                    <Button icon={<UploadOutlined />}>Image Upload</Button>
+                                    {/* <Button icon={<UploadOutlined />}>Image Upload</Button> */}
+                                    <Button disabled={imgUrl !== "" || selectedRequirement === 'Listen, read and tick the correct anwser.'} icon={<UploadOutlined />}>Image Upload</Button>
                                 </Upload>
                             </div>
                         </Form.Item>
@@ -233,7 +310,7 @@ function AddQuestion({ openAddQuestion, closeAddQuestion, addQuestion, updateQue
                                         className="my-2"
 
                                     >
-                                        <Input.TextArea placeholder="..." rows={1} disabled={selectedRequirement === 'Look at the picture and write the missing word.'} />
+                                        <Input.TextArea placeholder="..." rows={1} />
                                     </Form.Item>
 
                                     <div className="flex justify-between">
@@ -253,7 +330,7 @@ function AddQuestion({ openAddQuestion, closeAddQuestion, addQuestion, updateQue
                                                 {answersType === 'text' ? (
                                                     <Input
                                                         addonBefore={String.fromCharCode(65 + index) + '.'}
-                                                        value={ans.value}
+                                                        value={ans.value || ""}
                                                         onChange={(e) => onAnswerChange(index, e.target.value)}
                                                         className="w-full"
                                                     />
@@ -261,7 +338,7 @@ function AddQuestion({ openAddQuestion, closeAddQuestion, addQuestion, updateQue
                                                     <div className="flex items-center gap-4">
                                                         <Input
                                                             addonBefore={String.fromCharCode(65 + index) + '.'}
-                                                            value={ans.value}
+                                                            value={ans.value || ""}
                                                             onChange={(e) => onAnswerChange(index, e.target.value)}
                                                             className="w-full"
                                                         />
@@ -275,7 +352,6 @@ function AddQuestion({ openAddQuestion, closeAddQuestion, addQuestion, updateQue
                                                         )}
                                                     </div>
                                                 )}
-
 
                                                 {/* Cột 3: Checkbox đúng/sai */}
                                                 <div className="flex gap-6 justify-center">

@@ -12,7 +12,7 @@ function TableQuestion({ questions, onUpdate, onView, onDelete, }) {
         {
             title: 'Khối lớp',
             dataIndex: 'class',
-            key: 'class',
+            render: (_, record) => record.gradeId?.name || "",
         },
         {
             title: 'Unit',
@@ -40,7 +40,7 @@ function TableQuestion({ questions, onUpdate, onView, onDelete, }) {
                 return (
                     <>
                         {skills.map((skillRaw, index) => {
-                            // Chuẩn hóa: chuyển về thường rồi tra map
+
                             const normalized = skillRaw?.toLowerCase?.();
                             const skill = skillMap[normalized] || skillRaw?.toUpperCase?.() || 'UNKNOWN';
 
@@ -54,7 +54,7 @@ function TableQuestion({ questions, onUpdate, onView, onDelete, }) {
                             } else if (skill === 'W') {
                                 color = 'green';
                             } else {
-                                color = 'blue'; // fallback cho giá trị lạ
+                                color = 'blue'; 
                             }
 
                             return (

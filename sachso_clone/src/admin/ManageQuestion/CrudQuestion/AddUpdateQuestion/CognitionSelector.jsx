@@ -2,8 +2,18 @@ import { useEffect, useState } from "react"
 import { getCognitionSelectorApi } from "../../../../util/question/dropdown"
 import { Form, Select } from "antd"
 
-function CognitionSelector() {
+function CognitionSelector({form, editingQuestion}) {
     const [cognitionOptions, setCognitionOptions] = useState([])
+    const [selectedCognitionId, setSelectedCognitionId] = useState(null);
+
+    // Khi edit, set selectedGradeId và form field
+    useEffect(() => {
+        if (editingQuestion) {
+            const cognitionLevelId = editingQuestion.cognitionLevelId?._id || editingQuestion.cognitionLevelId
+            if (cognitionLevelId) setSelectedCognitionId(cognitionLevelId);
+            form.setFieldsValue({ cognitionLevelId });
+        }
+    }, [editingQuestion, form])
 
     useEffect(() => {
         const loadRequirement = async () => {
