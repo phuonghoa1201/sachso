@@ -1,7 +1,10 @@
 require("dotenv").config();
 
+const { error } = require("console");
+const { cloudinary } = require("../../config/cloudinary");
 const Question = require('../../models/question/question');
-const questionAPI = require("../../routes/question_routes/questionAPI");
+const fs = require('fs')
+
 
 const getQuestionService = async () => {
     try {
@@ -58,11 +61,20 @@ const addQuestionService = async (questionTableData) => {
             answerType,
             answers,
         });
+        // Sau khi thêm câu hỏi thành công thì populate lại một lần nữa để get câu hỏi ra được đúng
+        const populatedQuestion = await Question.findById(newQuestion._id)
+            .populate('gradeId', 'name')
+            .populate('unitId', 'name')
+            .populate('skillId', 'name')
+            .populate('questionTypeId', 'name')
+            .populate('cognitionLevelId', 'name');
+        console.log("Populated question:", populatedQuestion);
+
 
         return {
             EC: 0,
             EM: "Thêm câu hỏi thành công!",
-            DT: newQuestion,
+            DT: populatedQuestion,
         };
     } catch (error) {
         console.error("Error in addQuestionService:", error);
@@ -116,23 +128,17 @@ const editQuestionService = async (questionId, updatedData) => {
 
         const result = await existingQuestion.save();
 
+        const populatedResult = await Question.findById(result._id)
+            .populate('gradeId', 'name')
+            .populate('unitId', 'name')
+            .populate('skillId', 'name')
+            .populate('questionTypeId', 'name')
+            .populate('cognitionLevelId', 'name');
+
         return {
             EC: 0,
             EM: "Cập nhật câu hỏi thành công",
-            DT: {
-                gradeId: result.gradeId,
-                unitId: result.unitId,
-                skillId: result.skillId,
-                questionTypeId: result.questionTypeId,
-                cognitionLevelId: result.cognitionLevelId,
-                requirement: result.requirement,
-                audioUrl: result.audioUrl,
-                imageUrl: result.imageUrl,
-                readingText: result.readingText,
-                content: result.content,
-                answerType: result.answerType,
-                answers: result.answers
-            }
+            DT: populatedResult
         };
 
     } catch (error) {
@@ -144,9 +150,119 @@ const editQuestionService = async (questionId, updatedData) => {
         };
     }
 };
+// Xử lý upload lên Cloudinary
+// file: file gửi, type: để biết nó lưu vào unit ì dạng ì
+const uploadFileService = async (file, type) => {
+    // Promise: vì phải chờ Cloudinary giải quyết
+    return new Promise((resolve, reject) => {
+        // tạo stream upload
+        const stream = cloudinary.uploader.upload_stream(
+            {
+                folder: type === 'audio' ? 'uploads/audio' : 'uploads/images',
+                resource_type: type === 'audio' ? 'video' : 'image'
+
+            },
+            (error, result) => {
+                if (error) return reject(error);
+                resolve(result.secure_url)
+            }
+        )
+        stream.end(file.buffer)
+    })
+}
+
+// const viewQuestionService = async (questionId) => {
+//     try {
+//         const question = await Question.findById(questionId)
+
+//         if (!question) {
+//             console.log("Không tìm thấy câu hỏi");
+//             return {
+//                 EC: 1,
+//                 EM: "Không tìm thấy câu hỏi",
+//                 DT: null
+//             };
+//         }
+
+//         // Lấy stt Ví dụ: lấy tất cả câu hỏi cùng unitId để sắp xếp
+
+//         return {
+//             EC: 0,
+//             EM: "Xem chi tiết câu hỏi thành công",
+//             DT: question
+//         };
+//     } catch (error) {
+//         console.error("Lỗi khi xem chi tiết câu hỏi:", error);
+//         return {
+//             EC: -1,
+//             EM: "Đã xảy ra lỗi trong quá trình xử lý",
+//             DT: null
+//         };
+//     }
+
+// }
+
+const viewQuestionService = async (questionId) => {
+    try {
+        // Lấy tất cả câu hỏi, sắp xếp theo stt
+        const allQuestions = await Question.find({}).sort({ stt: 1 });
+
+        // Tìm câu hỏi cần xem
+        const questionIndex = allQuestions.findIndex(q => q._id.toString() === questionId);
+        const question = allQuestions[questionIndex];
+
+        if (!question) {
+            return { EC: 1, EM: "Không tìm thấy câu hỏi", DT: null };
+        }
+
+        // stt chính là index + 1 trong danh sách
+        const stt = questionIndex + 1;
+
+        return {
+            EC: 0,
+            EM: "Xem chi tiết câu hỏi thành công",
+            DT: { ...question.toObject(), stt }
+        };
+    } catch (error) {
+        console.error("Lỗi khi xem chi tiết câu hỏi:", error);
+        return { EC: -1, EM: "Đã xảy ra lỗi trong quá trình xử lý", DT: null };
+    }
+};
+
+const deleteQuestionService = async (questionId) => {
+    try {
+        const existingQuestion = await Question.findById(questionId)
+        if (!existingQuestion) {
+            console.log("Không tìm thấy câu hỏi");
+            return {
+                EC: 1,
+                EM: "Không tìm thấy câu hỏi",
+                DT: null
+            };
+
+        }
+        const result = await Question.deleteOne({ _id: questionId })
+        return {
+            EC: 0,
+            EM: "Xóa câu hỏi thành công",
+            DT: result
+        };
+
+    } catch (error) {
+        console.log("Error in delete Question Table", error);
+        return {
+            EC: 2,
+            EM: error.message || "Lỗi server không xác định",
+            DT: null
+        };
+    }
+}
 
 module.exports = {
     getQuestionService,
     addQuestionService,
-    editQuestionService
+    editQuestionService,
+    uploadFileService,
+    viewQuestionService,
+    deleteQuestionService
 };

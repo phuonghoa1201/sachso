@@ -26,10 +26,10 @@ const createUserService = async (userData) => {
             name,
             email,
             password: hashPassword,
-            role:"student",
+            role: "student",
             level,
             phone,
-            date: date || new Date() 
+            date: date || new Date()
         });
 
         return result;
@@ -109,5 +109,5 @@ const handleLoginService = async (email, password) => {
 module.exports = {
     createUserService,
     handleLoginService,
-  
+
 }

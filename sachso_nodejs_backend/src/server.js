@@ -1,5 +1,5 @@
 require('dotenv').config();
-const express = require('express'); //commonjs
+const express = require('express'); 
 const configViewEngine = require('./config/viewEngine');
 const apiRoutes = require('./routes/api');
 const dropdownRoutes = require('./routes/question_routes/dropdownAPI')
@@ -32,6 +32,7 @@ configViewEngine(app);
 app.use('/v1/api/', apiRoutes);
 app.use('/v1/api/dropdowns/', dropdownRoutes)
 app.use('/v1/api/', questionAPI)
+
 //khai báo route
 app.use('/', getHomepage);
 // lỗi cors chỉ bị lỗi khi gọi từ browser lên phía server
