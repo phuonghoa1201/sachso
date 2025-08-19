@@ -32,12 +32,20 @@ async function addExercise(req, res) {
 }
 
 const getExercise = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    if (!classId) {
+      return res.status(400).json({ EC: 1, EM: "Thiếu classId", DT: [] });
+    }
 
-  const data = await getExerciseService();
+    const data = await getExerciseService(classId);
 
-  return res.status(200).json(data)
-
-}
+    return res.status(200).json({ EC: 0, EM: "Lấy danh sách bài tập thành công", DT: data });
+  } catch (error) {
+    console.error("Lỗi khi getExercise:", error);
+    return res.status(500).json({ EC: -1, EM: "Server error", DT: [] });
+  }
+};
 
 const deleteExercise = async (req, res) => {
   const exerciseId = req.params.id;

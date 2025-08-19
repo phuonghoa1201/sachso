@@ -21,7 +21,7 @@ teacherAPI.get("/view-class/:id", authorizeRole(["teacher"]), getViewDetailClass
 // teacher create excercise
 teacherAPI.get("/questions", authorizeRole(["teacher", "admin"]), getQuestions)
 teacherAPI.post("/add-exercise", authorizeRole(["teacher", "admin"]), addExercise)
-teacherAPI.get("/exercises",authorizeRole(["teacher", "admin"]),getExercise )
+teacherAPI.get("/exercises/:classId",authorizeRole(["teacher", "admin"]),getExercise )
 teacherAPI.delete("/delete-exercise/:id", authorizeRole(["teacher",'admin']), deleteExercise)
 
 

@@ -46,23 +46,26 @@ async function createExerciseService(userEmail, data) {
   }
 }
 
-const getExerciseService = async () => {
+const getExerciseService = async (classId) => {
   try {
-    const exercises = await Exercise.find({}, "title questions"); // chỉ lấy title và questions
+    const exercises = await Exercise.find(
+      { class_id: classId },
+      "title questions"
+    );
 
-    // map lại để trả về đúng định dạng bạn cần
-    const simplified = exercises.map(ex => ({
+    if (!exercises || exercises.length === 0) return [];
+
+    return exercises.map(ex => ({
       _id: ex._id,
       title: ex.title,
-      totalQuestions: ex.questions.length
+      totalQuestions: ex.questions?.length || 0
     }));
-
-    return simplified;
   } catch (error) {
     console.error("Lỗi khi lấy danh sách bài tập:", error);
-    return null;
+    throw error; // để controller bắt lỗi
   }
 };
+
 
 const deleteExerciseService = async (exerciseId) => {
   try {
