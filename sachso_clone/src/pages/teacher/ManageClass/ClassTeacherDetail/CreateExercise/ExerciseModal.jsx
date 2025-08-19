@@ -84,7 +84,7 @@ function ExerciseModal({ open, onCancel, classId }) {
 
       // Gọi lại API để cập nhật bảng
       fetchExercise();
-      // setSaveLoading(false)
+      setSaveLoading(false)
 
       // onCancel();
     } catch (err) {
