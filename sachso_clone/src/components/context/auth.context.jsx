@@ -1,24 +1,22 @@
 import React, { createContext, useState } from "react";
 
-
+// Tạo context
 export const AuthContext = createContext({
   isAuthenticated: false,
-  user: { email: "", name: "" },
- 
+  user: { name: "", email: "", phone: ""},
 });
-// tạo cái wrapper coi thằng coi nào sẽ kế thừa data này
-export const AuthWrapper = (props) => {
-  // State đăng nhập
+
+// Wrapper để bọc app
+export const AuthWrapper = ({ children }) => {
   const [auth, setAuth] = useState({
     isAuthenticated: false,
-    user: { email: "", name: "" },
+    user: { name: "", email: "", phone: ""},
   });
-
-
+ 
+  const [appLoading, setAppLoading] = useState(true)
   return (
-    <AuthContext.Provider value={{auth, setAuth}}
-    >
-      {props.children}
+    <AuthContext.Provider value={{ auth, setAuth, appLoading, setAppLoading }}>
+      {children}
     </AuthContext.Provider>
   );
 };

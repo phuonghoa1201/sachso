@@ -2,7 +2,7 @@ import { EyeOutlined, EditOutlined, DeleteOutlined, PhoneOutlined, KeyOutlined }
 import { Select, Form, Button, Input, Table, Tag, Space, Breadcrumb } from "antd";
 import styles from './TableQuestion.Module.css'
 function TableQuestion({ questions, onUpdate, onView, onDelete, }) {
-    console.log("Question in TableQuestion:", questions);
+    // console.log("Question in TableQuestion:", questions);
     const columns = [
         {
             title: '#',

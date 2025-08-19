@@ -3,10 +3,11 @@ import Home from "./pages/home/Home/Home.jsx";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom"; 
 import Login from "./pages/home/Login/Login.jsx";
 import { useState } from "react";
-import AdminRoutes from "./routes/adminRoutes.jsx";
 import ProtectedRoute from "./components/ProtectedRoute/ProtectedRoute.jsx";
 import StudentRoutes from "./routes/StudentRoutes.jsx";
 import Register from "./pages/home/Register/Register.jsx";
+import TeacherRoutes from "./routes/TeacherRoutes.jsx";
+import AdminRoutes from "./routes/AdminRoutes.jsx";
 
 function AppRoutes() {
   const navigate = useNavigate();
@@ -79,7 +80,7 @@ function AppRoutes() {
           path="/teacher/*"
           element={
             <ProtectedRoute allowedRoles={["teacher"]}>
-              <AdminRoutes />
+             <TeacherRoutes/>
             </ProtectedRoute>
           }
         />

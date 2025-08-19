@@ -19,6 +19,11 @@ const loginApi = (email, password) => {
     }
     return axios.post(URL_API, data)
 }
+
+const getAccountApi = () => {
+    const URL_API = "/v1/api/account"
+    return axios.get(URL_API)
+} 
 // api manage user
 // get user from table
 const getUserApi = () => {
@@ -96,6 +101,7 @@ const deleteQuestionApi = (id) => {
 export {
     createUserApi,
     loginApi,
+    getAccountApi,
     getUserApi,
     addUserApi,
     editUserApi,

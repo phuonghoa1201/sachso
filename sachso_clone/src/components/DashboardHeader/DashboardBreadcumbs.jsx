@@ -24,6 +24,14 @@ function DashboardBreadcrumbs() {
             </>
         ),
         'class': 'Lớp học',
+
+         teacher: (
+            <>
+                <HomeFilled /> &nbsp;
+                Giáo viên
+            </>
+        ),
+        'manage-class': 'Quản lý lớp học',
         
     }
 
