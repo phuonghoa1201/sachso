@@ -31,8 +31,8 @@ const addExerciseApi = (payload) => {
     return axios.post(URL_API, payload);
 };
 
-const getExerciseApi = () => {
-    const URL_API = "/v1/api/teacher/exercises"
+const getExerciseApi = (classId) => {
+    const URL_API = `/v1/api/teacher/exercises/${classId}`
     return axios.get(URL_API)
 }
 

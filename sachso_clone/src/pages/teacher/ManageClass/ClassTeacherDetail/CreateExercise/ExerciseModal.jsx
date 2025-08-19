@@ -81,10 +81,11 @@ function ExerciseModal({ open, onCancel, classId }) {
       form.resetFields();
       setSelectedQuestions([]);
       setSelectedColor(null);
+      setSaveLoading(false)
 
       // Gọi lại API để cập nhật bảng
       fetchExercise();
-      setSaveLoading(false)
+
 
       // onCancel();
     } catch (err) {
@@ -95,17 +96,23 @@ function ExerciseModal({ open, onCancel, classId }) {
   };
   // View exercise
   const fetchExercise = async () => {
-    const res = await getExerciseApi();
-    console.log("API response:", res);
-    if (Array.isArray(res)) {
-      setExercises(res);
-    } else {
+    if (!classId) return;
+    try {
+      const res = await getExerciseApi(classId);
+      console.log("API response:", res);
+      if (res.EC === 0 && Array.isArray(res.DT)) {
+        setExercises(res.DT); // Lấy mảng bài tập ở DT
+      } else {
+        setExercises([]);
+      }
+    } catch (err) {
+      console.error("Fetch exercise error:", err);
       setExercises([]);
     }
   };
   useEffect(() => {
     fetchExercise();
-  }, []);
+  }, [classId]);
 
 
 
