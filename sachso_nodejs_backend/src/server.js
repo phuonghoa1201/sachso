@@ -12,6 +12,7 @@ require('./models/question/questionType');
 require('./models/question/cognitionLevel');
 const cors = require('cors');
 const questionAPI = require('./routes/question_routes/questionAPI');
+const teacherAPI = require('./routes/teacher_routes/teacherAPI')
 
 
 const app = express();
@@ -32,6 +33,7 @@ configViewEngine(app);
 app.use('/v1/api/', apiRoutes);
 app.use('/v1/api/dropdowns/', dropdownRoutes)
 app.use('/v1/api/', questionAPI)
+app.use('/v1/api/teacher/', teacherAPI)
 
 //khai báo route
 app.use('/', getHomepage);

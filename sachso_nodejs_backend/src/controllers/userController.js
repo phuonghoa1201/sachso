@@ -3,16 +3,16 @@ const { createUserService, handleLoginService } = require("../services/userServi
 
 // console.log("Check req.body", req.body);
 const createUser = async (req, res) => {
-    const { name, email, password, level, phone, date } = req.body;
+  const { name, email, password, level, phone, date } = req.body;
 
-    // Kiểm tra dữ liệu đầu vào
-    if (!name || !email || !password) {
-        return res.status(400).json({
-            EC: 1,
-            EM: "Thiếu các trường bắt buộc: name, email, password"
-        });
-    }
-    try {
+  // Kiểm tra dữ liệu đầu vào
+  if (!name || !email || !password) {
+    return res.status(400).json({
+      EC: 1,
+      EM: "Thiếu các trường bắt buộc: name, email, password"
+    });
+  }
+  try {
     const data = await createUserService({ name, email, password, level, phone, date });
     return res.status(200).json(data);
   } catch (error) {
@@ -24,18 +24,28 @@ const createUser = async (req, res) => {
   }
 };
 
-
-
 const handleLogin = async (req, res) => {
-    const { email, password } = req.body;
-    const data = await handleLoginService(email, password)
-    return res.status(200).json(data)
+  const { email, password } = req.body;
+  const data = await handleLoginService(email, password)
+  return res.status(200).json(data)
 
 }
 
+const getAccount = async (req, res) => {
+  console.log("Returning req.user >>", req.user);
+  res.status(200).json({
+    email: req.user.email,
+    name: req.user.name,
+    phone: req.user.phone // chắc chắn gửi phone
+  });
+};
+
+
 
 module.exports = {
-    createUser,
-    handleLogin,
+  createUser,
+  handleLogin,
+  getAccount
+
 
 }

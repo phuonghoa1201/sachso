@@ -1,5 +1,5 @@
 const express = require('express');
-const { createUser, handleLogin } = require('../controllers/userController');
+const { createUser, handleLogin, getAccount } = require('../controllers/userController');
 const {getUser, addUser, editUser, deleteUser, viewUser} = require('../controllers/manageUserController')
 const auth = require('../middleware/auth');
 
@@ -15,6 +15,7 @@ routerAPI.all("*", auth);
 routerAPI.post("/register", createUser)
 routerAPI.post("/login", handleLogin)
 routerAPI.get("/user",authorizeRole(['admin']), getUser)
+routerAPI.get("/account",authorizeRole(['admin', 'teacher']), getAccount)
 // admin manage user
 routerAPI.post("/add-user", authorizeRole(["admin"]), addUser )
 routerAPI.put("/edit-user/:id", authorizeRole(["admin"]), editUser)

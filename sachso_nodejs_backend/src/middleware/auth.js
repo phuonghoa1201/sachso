@@ -1,7 +1,9 @@
-require('dotenv').config
-const jwt = require("jsonwebtoken")
+require('dotenv').config();
+
+const jwt = require("jsonwebtoken");
+const User = require('../models/user');
 // thằng middileware có ba tham số
-const auth = (req, res, next) => {
+const auth = async (req, res, next) => {
 
     // white_list: là những cái end point mà bạn không muốn nó xác thực >< blacklist
     // const white_lists = ["/", "/register", "/login"]
@@ -20,8 +22,19 @@ const auth = (req, res, next) => {
 
             // verify token
             try {
-                const decoded = jwt.verify(token, process.env.JWT_SECRET,)
+                const decoded = jwt.verify(token, process.env.JWT_SECRET)
+                // Lấy user từ DB
+                const user = await User.findOne({ email: decoded.email });
+                if (!user) return res.status(404).json({ message: "User not found" });
+
+                req.user = {
+                    email: decoded.email,
+                    name: decoded.name,
+                    phone: user.phone 
+                }
                 console.log("check token >>", decoded)
+                console.log("Check res", req.user);
+                
                 next();
             } catch (error) {
                 return res.status(401).json({

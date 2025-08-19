@@ -15,7 +15,7 @@ const authorizationRole = (roles) => {
                 return res.status(403).json({ message: "Không có quyền truy cập" });
             }
 
-            req.user = decoded;
+            // req.user = decoded;
             next();
 
         } catch (err) {

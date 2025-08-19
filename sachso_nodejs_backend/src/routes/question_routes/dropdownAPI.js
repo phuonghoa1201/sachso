@@ -9,10 +9,10 @@ const routerDropdowns = express.Router();
 
 routerDropdowns.all("*", auth);
 
-routerDropdowns.get("/grade", authorizeRole(['admin']), getGrade)
-routerDropdowns.get("/unit", authorizeRole(['admin']), getUnit)
-routerDropdowns.get("/cognition-level",authorizeRole(['admin']), getLevel)
-routerDropdowns.get("/skill",authorizeRole(['admin']), getSkill )
-routerDropdowns.get("/question-type", authorizeRole(['admin']), getQuestionType)
+routerDropdowns.get("/grade", authorizeRole(['admin','teacher']), getGrade)
+routerDropdowns.get("/unit", authorizeRole(['admin','teacher']), getUnit)
+routerDropdowns.get("/cognition-level",authorizeRole(['admin','teacher']), getLevel)
+routerDropdowns.get("/skill",authorizeRole(['admin','teacher']), getSkill )
+routerDropdowns.get("/question-type", authorizeRole(['admin','teacher']), getQuestionType)
 
 module.exports = routerDropdowns;
