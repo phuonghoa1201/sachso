@@ -41,6 +41,17 @@ const deleteExerciseApi = (id) => {
     return axios.delete(URL_API)
 }
 
+const editClassApi = (classId, data) => {
+    const URL_API = `v1/api/teacher/edit-class/${classId}`;
+    return axios.put(URL_API, data)
+
+}
+
+const deleteClassApi = (classId) => {
+    const URL_API = `v1/api/teacher/delete-class/${classId}`;
+    return axios.delete(URL_API)
+}
+
 export {
     getClassApi,
     addClassApi,
@@ -48,7 +59,9 @@ export {
     addExerciseApi,
     getAllQuestionsApi,
     getExerciseApi,
-    deleteExerciseApi
+    deleteExerciseApi,
+    editClassApi,
+    deleteClassApi
 
 
 } 

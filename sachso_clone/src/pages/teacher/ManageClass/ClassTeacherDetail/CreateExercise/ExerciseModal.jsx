@@ -177,7 +177,13 @@ function ExerciseModal({ open, onCancel, classId }) {
 
   return (
     <>
-      <Modal title="TẠO MỚI BÀI TẬP" open={open} onCancel={onCancel} footer={false} width={800}>
+      <Modal title="TẠO MỚI BÀI TẬP" open={open} onCancel={onCancel} footer={false} styles={{
+        body: {
+          maxHeight: "70vh",
+          overflowY: "auto",
+        },
+      }}
+      >
         <Form form={form} layout="vertical">
           <Form.Item name="title" label="Tiêu đề:" rules={[{ required: true }]}>
             <Input placeholder="Nhập tiêu đề bài tập" />
@@ -282,7 +288,7 @@ function ExerciseModal({ open, onCancel, classId }) {
         cancelText="Hủy"
         okType="danger"
       >
-        <p>Bạn có chắc chắn muốn xoá question "<strong>{exerciseToDelete?.title}</strong>" không?</p>
+        <p>Bạn có chắc chắn muốn xoá exercise "<strong>{exerciseToDelete?.title}</strong>" không?</p>
       </Modal>
     </>
   );

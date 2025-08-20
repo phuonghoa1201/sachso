@@ -25,39 +25,7 @@ function TableUser({ users, onDelete, onEdit, onView }) {
                 </span>
             )
         },
-        // {
-        //     title: 'Loại tài khoản',
-        //     dataIndex: 'role',
-        //     key: 'role',
-        //     render: (_, { role }) => (
-        //         <>
-        //             {(Array.isArray(role) ? role : []).map(position => {
-        //                 let color;
-        //                 if (position === 'Học sinh') {
-        //                     color = 'blue';
-        //                 } else if (position === 'Giáo viên') {
-        //                     color = 'gold';
-        //                 } else {
-        //                     color = 'red';
-        //                 }
-        //                 return (
-        //                     <Tag color={color} key={position}>
-        //                         {position}
-        //                     </Tag>
-        //                 );
-        //             })}
-        //         </>
-        //     ),
-        //     // filters to generate filter menu in columns
-        //     filters: [
-        //         { text: 'Học sinh', value: 'Học sinh' },
-        //         { text: 'Giáo viên', value: 'Giáo viên' },
-        //         { text: 'Nhân viên', value: 'Nhân viên' },
-        //         { text: 'Khác', value: 'Khác' },
-        //     ],
-        //     onFilter: (value, record) =>
-        //         Array.isArray(record.role) && record.role.includes(value),
-        // },
+
         {
             title: 'Loại tài khoản',
             dataIndex: 'role',
@@ -92,7 +60,7 @@ function TableUser({ users, onDelete, onEdit, onView }) {
 
         {
             title: 'Cấp',
-            dataIndex: 'level', 
+            dataIndex: 'level',
             key: 'level',
             render: (_, { level }) => {
                 let color = 'green';
