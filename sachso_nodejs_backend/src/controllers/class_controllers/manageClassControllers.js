@@ -1,4 +1,4 @@
-const { getClassService, addClassService, viewClassDetailService } = require("../../services/teacher_services/manageClassService");
+const { getClassService, addClassService, viewClassDetailService, editClassService, deleteClassService } = require("../../services/teacher_services/manageClassService");
 
 const getViewClass = async (req, res) => {
 
@@ -30,8 +30,39 @@ const getViewDetailClass = async(req, res) => {
     return res.status(200).json(data)
 
 }
+
+const editClass = async (req, res) => {
+  const classId = req.params.id;
+  const updatedData = req.body;
+
+  const result = await editClassService(classId, updatedData)
+  return res.status(200).json(result)
+
+}
+
+const deleteClass = async (req, res) => {
+  const classId = req.params.id;
+  try {
+    const result = await deleteClassService(classId);
+
+    return res.status(200).json({
+      EC: result.EC,
+      EM: result.EM,
+      DT: result.DT
+    });
+  } catch (error) {
+    console.error("Lỗi controller khi xóa class:", error);
+    return res.status(500).json({
+      EC: 99,
+      EM: "Lỗi server không xác định",
+      DT: null
+    });
+  }
+}
 module.exports = {
     getViewClass,
     addClass,
-    getViewDetailClass
+    getViewDetailClass,
+    editClass,
+    deleteClass
 }
